@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the game and package a Windows release using local Godot templates."""
+"""Validate the game and package a web or Windows release using Godot templates."""
 import argparse
 import hashlib
 import os
@@ -24,7 +24,7 @@ def run(godot, *args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["test", "windows"])
+    parser.add_argument("command", choices=["test", "web", "windows"])
     args = parser.parse_args()
     godot = shutil.which(os.environ.get("GODOT", "godot"))
     if not godot:
@@ -38,7 +38,8 @@ def main():
         run(godot, "--script", str(test))
     if args.command == "test":
         return
-    name = f"NumberSafari-{VERSION}-windows-x86_64"
+    web = args.command == "web"
+    name = f"NumberSafari-{VERSION}-{'web' if web else 'windows-x86_64'}"
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
     archive = dist / f"{name}.zip"
@@ -47,8 +48,8 @@ def main():
     with tempfile.TemporaryDirectory(prefix="number-safari-") as temp:
         package = Path(temp) / name
         package.mkdir()
-        executable = package / "NumberSafari.exe"
-        run(godot, "--export-release", "Windows Desktop", str(executable))
+        executable = package / ("index.html" if web else "NumberSafari.exe")
+        run(godot, "--export-release", "Web" if web else "Windows Desktop", str(executable))
         if not executable.is_file() or executable.stat().st_size == 0:
             raise RuntimeError("Godot did not produce an executable")
         for relative in NOTICES:
@@ -58,11 +59,12 @@ def main():
         with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as output:
             for file in sorted(package.rglob("*")):
                 if file.is_file():
-                    output.write(file, file.relative_to(package.parent))
+                    output.write(file, file.relative_to(package if web else package.parent))
         with zipfile.ZipFile(archive) as output:
             assert output.testzip() is None
-            for relative in NOTICES + ["NumberSafari.exe"]:
-                assert f"{name}/{relative}" in output.namelist()
+            required = ["index.html", "index.js", "index.wasm", "index.pck"] if web else ["NumberSafari.exe"]
+            for relative in NOTICES + required:
+                assert (relative if web else f"{name}/{relative}") in output.namelist()
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
     archive.with_suffix(".zip.sha256").write_text(f"{digest}  {archive.name}\n")
     print(f"Release archive: {archive}")

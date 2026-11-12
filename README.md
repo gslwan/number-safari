@@ -36,9 +36,10 @@ With Python 3 and Godot on PATH, run `python3 tools/release.py test` to import
 assets and run the board, Beginner, Classic, and growth tests. Close the game
 before running integration tests, which temporarily write local history.
 
-Run `python3 tools/release.py windows` to validate and package a Windows x86_64
-release with licenses and a SHA-256 checksum. Matching Godot export templates
-are required. See [the release guide](RELEASING.md) for setup and GitHub steps.
+The Windows GitHub release has been withdrawn. Browser distribution is being
+prepared for itch.io. Run `python3 tools/release.py web` to validate and package
+the browser game with licenses and a SHA-256 checksum. Matching Godot web export
+templates are required. See [the release guide](RELEASING.md) for itch.io setup.
 
 ## Licenses
 

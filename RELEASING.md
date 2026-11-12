@@ -1,49 +1,35 @@
-# Releasing Number Safari
+# Publishing Number Safari on itch.io
 
-The first planned version is **0.1.0**. Publishing is a separate step from
-preparation. Commands below run from the project root on macOS or Linux with
-Python 3, Git, GitHub CLI, and Godot 4.7.2 standard installed.
+The source lives on GitHub. Player distribution is moving to itch.io; the
+Windows GitHub release has been withdrawn. The v0.1.0 source tag is retained.
 
-## Validate and build
+## Build
 
-1. Install the matching **4.7.2 export templates** through Godot's
-   **Editor → Manage Export Templates**.
-2. Run `python3 tools/release.py test` to import assets and run all four test
-   suites. Close the running game first: integration tests temporarily save
-   completed rounds and restore the previous history on successful completion.
-3. Run `python3 tools/release.py windows`. This repeats validation, exports
-   Windows x86_64, and creates `dist/NumberSafari-0.1.0-windows-x86_64.zip`
-   plus its `.zip.sha256` checksum. Set `GODOT` if the binary is not on PATH.
-   Packaging includes the game, README, and all required attribution/license files.
-4. Extract the archive on Windows and launch `NumberSafari.exe`. Check all
-   three modes, sound, movement, mistakes, victory, replay, and saved history
-   after restarting. Headless tests do not replace this check. The executable
-   is unsigned.
-5. Review `CHANGELOG.md`, change Unreleased to the release date, and confirm
-   the version in `project.godot` and `tools/release.py` matches the tag.
-
-## First GitHub upload
-
-Review `git status --short` before committing. Generated caches, credentials,
-and release output are ignored; Godot UID and import metadata are retained.
+Use Godot 4.7.2 standard with matching web export templates and Python 3.
+Close the running game, then run:
 
 ```sh
-git add .
-git diff --cached --stat
-git commit -m "Prepare Number Safari 0.1.0"
-gh auth login --hostname github.com
-# Choose repository visibility deliberately; this example creates a private repo.
-gh repo create gslwan/number-safari --private --source=. --remote=origin --push
+python3 tools/release.py web
 ```
 
-If the repository already exists, add its remote and push instead of creating it.
-After the Windows smoke check and a clean commit, create a draft release:
+This runs all four test suites and writes `dist/NumberSafari-0.1.0-web.zip`
+and its SHA-256 checksum. The ZIP contains `index.html` at its root, the
+JavaScript/WebAssembly/PCK files, and all license and attribution notices.
+The Web preset disables threads to avoid cross-origin-isolation requirements.
+Move an existing archive aside before rebuilding; the command will not overwrite it.
 
-```sh
-git tag -a v0.1.0 -m "Number Safari 0.1.0"
-git push origin v0.1.0
-gh release create v0.1.0 dist/NumberSafari-0.1.0-windows-x86_64.zip dist/NumberSafari-0.1.0-windows-x86_64.zip.sha256 --verify-tag --draft --title "Number Safari 0.1.0" --notes-file .github/RELEASE_NOTES.md
-```
+## Upload
 
-Review the draft and attachments on GitHub before publishing. For later
-versions, update the version, changelog, notes, artifact names, and tag together.
+1. Create or edit a project at https://itch.io/game/new.
+2. Set the title to **Number Safari**, kind to **HTML**, and pricing to **No payments**.
+3. Upload `dist/NumberSafari-0.1.0-web.zip` and select **This file will be played in the browser**.
+4. Use a 1280×720 viewport, Click to Play, and the fullscreen button.
+5. State that a keyboard is required; do not mark the game mobile-friendly.
+6. Add the description from `ITCH_PAGE.md`, screenshots, and the existing
+   AI-assisted artwork disclosure where itch.io requests it.
+7. Preview all three modes, sound, fullscreen, and history after reloading.
+   Browser storage may be unavailable or cleared; history is local to that browser.
+8. Publish the page and add the confirmed play URL near the top of `README.md`.
+
+The legacy Windows export preset and packaging command remain available for
+local development, but Windows binaries are no longer published on GitHub.
