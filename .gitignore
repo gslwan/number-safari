@@ -1,0 +1,11 @@
+# Godot-generated caches (keep .uid and .import metadata).
+.godot/
+.DS_Store
+export_credentials.cfg
+build/
+dist/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
